@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+	<title>Main</title>
+	<style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+        }
+		#zoom{
+			width: 100vw;
+			height: 100vh;
+			position: absolute;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: rgba(93, 92, 92, 0.49);
+		}
+		#zoom_data{
+			width: 60%;
+			height: 90%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 15px;
+			background: white;
+		}
+        #div_input_data{
+            width: 100%;
+            height: 450px;
+			padding: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+		#input_data{
+			height: 50%;
+			margin-right: 150px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: space-between;
+		}
+        .buttons{
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.matrix{
+			height: 100%;
+			width: min-content;
+			padding: 25px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.line_matrix{
+			width: 100%;
+		}
+		.cell_matrix_answers{
+            border: 1px solid black;
+            background-size: 100% 100%;
+		}
+        .line_matrix_answers{
+            width: 100%;
+        }
+        .cell_matrix{
+            border: 1px solid black;
+            background-size: 100% 100%;
+        }
+		#div_answers{
+			width: 100%;
+			height: max-content;
+		}
+        #array_answers{
+			width: 100%;
+			height: max-content;
+            flex-wrap: wrap;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.div_answer{
+			width: max-content;
+			height: max-content;
+			display: flex;
+			padding: 25px;
+		}
+		.buttons_answers{
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+        .buttons_answers button{
+			width: 150px;
+			height: 70px;
+			display: none;
+			font-size: 25px;
+			margin: 25px 50px 25px 50px;
+		}
+        #div_is_process{
+            width: 70%;
+            height: 90%;
+            position: fixed;
+            top: 5%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(77, 77, 77, 0.3);
+            border-radius: 25px;
+        }
+        #spinner{
+            width: 15rem;
+            height: 15rem;
+        }
+	</style>
+</head>
+<body>
+	<h1>Задача о растановки ферзей</h1>
+	<div id="div_input_data">
+		<div id="input_data">
+			<h2>Введите размер матрицы:</h2>
+			<input type="number" class="form-control" id="input_size_matrix" placeholder="4" min="4">
+			<div class="buttons">
+				<button type="button" class="btn btn-primary" id="enter">Нарисовать матрицу</button>
+				<button type="button" class="btn btn-success" id="send" disabled>Решить задачу</button>
+			</div>
+		</div>
+		<div class="matrix">
+		</div>
+	</div>
+	<div id="div_answers">
+		<h3 style="text-align: center">Варианты решений</h3>
+		<div id="array_answers">
+
+		</div>
+		<div class="buttons_answers">
+			<button type="button" class="btn btn-secondary" id="back" disabled>Назад</button>
+			<button type="button" class="btn btn-success" id="next">Далее</button>
+		</div>
+	</div>
+	<div id="zoom">
+		<div id="zoom_data">
+			<div class="matrix" id="zoom_matrix">
+
+			</div>
+		</div>
+	</div>
+	<div id="div_is_process" class="shadow">
+		<h1 id="load_process">Идёт решение задачи</h1>
+		<div class="spinner-border text-success" role="status" id="spinner">
+			<span class="visually-hidden">Решение...</span>
+		</div>
+	</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script>
+	let array_queen = []
+	let size_matrix = 4
+
+    let res_data
+    let index_answer_back = 0
+    let index_answer_next = 7
+
+	show_matrix(4)
+
+    /**
+	 * Отображение шахматного поля
+     * @param size_matrix - Размер поля
+     */
+	function show_matrix(size_matrix) {
+        document.querySelector('.matrix').innerHTML = ''
+		if (size_matrix > 10 && array_queen.length === 0){
+			zoom_matrix(size_matrix)
+		}
+		for (let i = 0; i < size_matrix; i++){
+            let line = document.createElement('div')
+			line.className = 'line_matrix'
+            for (let j = 0; j < size_matrix; j++){
+                let cell = document.createElement('div')
+                cell.className = 'cell_matrix'
+                cell.style.width = `${50 / (size_matrix / 5)}px`
+                cell.style.height = `${50 / (size_matrix / 5)}px`
+				cell.id = `${i}_${j}`
+				if (array_queen.length !== 0){
+                    for (let k = 0; k < array_queen.length; k++){
+                        if (i === parseInt(array_queen[k][0]) && j === parseInt(array_queen[k][1]))
+                            cell.style.backgroundImage = "url('http://localhost:80/static/queen.png')"
+                    }
+				}
+				line.appendChild(cell)
+			}
+            document.querySelector('.matrix').appendChild(line)
+		}
+
+        document.querySelectorAll('.cell_matrix').forEach((item) => {
+            item.addEventListener('mouseenter', () => {
+                if (item.style.backgroundImage === "")
+                    item.style.backgroundColor = 'lime'
+                else
+                    item.style.backgroundColor = 'red'
+            })
+
+            item.addEventListener('mouseleave', () => {
+                item.style.backgroundColor = 'white'
+            })
+
+            item.addEventListener('click', () => {
+                let array_pos = item.id.split('_')
+                let check = false
+                for (let i = 0; i < array_queen.length; i++){
+                    if (array_queen[i][0] === array_pos[0] && array_queen[i][1] === array_pos[1]){
+                        check = true
+                        break
+                    }
+                }
+                if (check){
+                    let pos = 0
+                    item.style.backgroundImage = ""
+                    for (let i = 0; i < array_queen.length; i++){
+                        if (array_queen[i][0] === array_pos[0] && array_queen[i][1] === array_pos[1]){
+                            pos = i
+                            break
+                        }
+                    }
+                    array_queen.splice(pos, 1)
+                    document.getElementById('send').disabled = array_queen.length === 0;
+                }
+                else {
+                    item.style.backgroundImage = "url('http://localhost:80/static/queen.png')"
+                    array_queen.push([array_pos[0], array_pos[1]])
+                    document.getElementById('send').disabled = false
+                }
+            })
+        })
+    }
+
+    /**
+	 * Увеличения шахматного поля для установки ферзей
+     * @param size_matrix - Размер поля
+     */
+    function zoom_matrix(size_matrix) {
+        document.getElementById('zoom').style.display = 'flex'
+        document.getElementById('zoom_matrix').innerHTML = ''
+        for (let i = 0; i < size_matrix; i++){
+            let line = document.createElement('div')
+            line.className = 'line_matrix'
+            for (let j = 0; j < size_matrix; j++){
+                let cell = document.createElement('div')
+                cell.className = 'cell_matrix'
+                cell.style.width = `${70 / (size_matrix / 11)}px`
+                cell.style.height = `${70 / (size_matrix / 11)}px`
+                cell.id = `${i}_${j}`
+
+                for (let i = 0; i < array_queen.length; i++){
+                    if (array_queen[i][0] === i && array_queen[i][1] === j){
+                        cell.style.backgroundImage = "url('http://localhost:80/static/queen.png')"
+                    }
+
+                }
+                line.appendChild(cell)
+            }
+            document.getElementById('zoom_matrix').appendChild(line)
+        }
+        document.getElementById('zoom').addEventListener('click', (e) => {
+            if (e.target.className === ''){
+                show_matrix(size_matrix)
+                document.getElementById('zoom').style.display = 'none'
+			}
+		})
+    }
+
+    /**
+	 * Увеличения ответа на задачу
+     * @param answer - Ответ
+     */
+    function zoom_answer_matrix(answer) {
+        document.getElementById('zoom').style.display = 'flex'
+        document.getElementById('zoom_matrix').innerHTML = ''
+        for (let i = 0; i < size_matrix; i++){
+            let line = document.createElement('div')
+            line.className = 'line_matrix'
+            for (let j = 0; j < size_matrix; j++){
+                let cell = document.createElement('div')
+                cell.className = 'cell_matrix'
+                cell.style.width = `${70 / (size_matrix / 11)}px`
+                cell.style.height = `${70 / (size_matrix / 11)}px`
+
+                for (let k = 0; k < answer.length; k++){
+                    if (answer[k][0] === i && answer[k][1] === j){
+                        cell.style.backgroundImage = "url('http://localhost:80/static/queen.png')"
+                    }
+                }
+                line.appendChild(cell)
+            }
+            document.getElementById('zoom_matrix').appendChild(line)
+        }
+        document.getElementById('zoom').addEventListener('click', (e) => {
+            if (e.target.className === ''){
+                document.getElementById('zoom').style.display = 'none'
+            }
+        })
+    }
+
+	//Отрисовка матрицы
+    document.getElementById('enter').addEventListener('click', () => {
+        array_queen = []
+        index_answer_back = 0
+        index_answer_next = 7
+        document.querySelector('#array_answers').innerHTML = ''
+        show_matrix(document.getElementById('input_size_matrix').value)
+	})
+
+    /**
+	 * Отрисовка ответов
+     * @param answers - Список ответов
+     */
+    function show_answers(answers) {
+        array_queen = []
+        //document.querySelector('.matrix').innerHTML = ''
+        document.querySelector('#array_answers').innerHTML = ''
+		answers.forEach((answer) => {
+            let my_answer = JSON.parse(answer)
+            let div_answer = document.createElement('div')
+            div_answer.className = 'div_answer'
+            for (let i = 0; i < size_matrix; i++){
+                let line = document.createElement('div')
+                line.className = 'line_matrix_answers'
+                for (let j = 0; j < size_matrix; j++){
+                    let cell = document.createElement('div')
+                    cell.className = 'cell_matrix_answers'
+                    cell.style.width = `${40 / (size_matrix / 5)}px`
+                    cell.style.height = `${40 / (size_matrix / 5)}px`
+                    cell.id = `res${i}${j}`
+                    line.appendChild(cell)
+                }
+                div_answer.appendChild(line)
+            }
+            document.getElementById('array_answers').appendChild(div_answer)
+            my_answer.forEach((data) => {
+                div_answer.querySelector(`#res${data[0]}${data[1]}`).style.backgroundImage = "url('http://localhost:80/static/queen.png')"
+            })
+			if (size_matrix > 10){
+                div_answer.addEventListener('click', () => {
+                    zoom_answer_matrix(my_answer)
+				})
+			}
+		})
+    }
+
+    /**
+	 * Отображения процесса загрузки
+     * @returns {number} - id процесса
+     */
+    function show_process_point() {
+        let count = 0
+		document.getElementById('div_is_process').style.display = 'flex'
+        return setInterval(() => {
+            count++
+            if (count === 4) {
+                document.getElementById('load_process').textContent = 'Идёт решение задачи'
+                count = 0
+            } else
+                document.getElementById('load_process').textContent += '.'
+        }, 900)
+    }
+
+    // Запуск решения задачи
+    document.getElementById('send').addEventListener('click', async () => {
+        if (document.getElementById('input_size_matrix').value !== '')
+            size_matrix = document.getElementById('input_size_matrix').value
+        const request = await fetch("http://localhost:80/solve", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "size_matrix": size_matrix,
+                "pos_queens": array_queen
+            })
+        });
+        if (request.ok) {
+			let process_id = show_process_point()
+            console.log('Решается задача!')
+            let check_process_id = setInterval(async () => {
+                const check_process = await fetch("http://localhost:80/check_process", {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"}
+                });
+                if (check_process.ok) {
+                    const request_answers = await fetch("http://localhost:80/answers", {
+                        method: "GET",
+                        headers: {"Content-Type": "application/json"}
+                    });
+                    const data = await request_answers.json();
+                    if (request.ok) {
+                        clearInterval(process_id)
+                        document.getElementById('div_is_process').style.display = 'none'
+                        res_data = JSON.parse(data["answers"])
+						Array().push(...res_data)
+                        if (res_data.length > 7) {
+                            show_answers(res_data.slice(0, 7))
+                            document.getElementById('back').style.display = 'block'
+                            document.getElementById('next').style.display = 'block'
+                        } else
+                            show_answers(res_data)
+                    }
+                    clearInterval(check_process_id)
+                }
+            }, 1000)
+        }
+    })
+
+	// Отображение предыдущей части ответа
+	document.getElementById('back').addEventListener('click', () => {
+        document.getElementById('next').disabled = false
+		if (index_answer_back - 7 > 0){
+            show_answers(res_data.slice(index_answer_back - 7, index_answer_back))
+            index_answer_back -= 7
+            document.getElementById('back').disabled = false
+		}
+		else{
+            show_answers(res_data.slice(0, index_answer_back))
+            index_answer_back = 0
+            document.getElementById('back').disabled = true
+		}
+        index_answer_next = index_answer_back + 7
+	})
+
+	// Отображение следующей части ответа
+    document.getElementById('next').addEventListener('click', () => {
+        document.getElementById('back').disabled = false
+        show_answers(res_data.slice(index_answer_next, index_answer_next + 7))
+		if (index_answer_next + 7 < res_data.length){
+            index_answer_back = index_answer_next
+            index_answer_next += 7
+            document.getElementById('next').disabled = false
+		}
+        else
+            document.getElementById('next').disabled = true
+    })
+</script>
+</html>
