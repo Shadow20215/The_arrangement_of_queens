@@ -33,7 +33,7 @@ def correction_answers():
     res_answers = array_answers
 
 
-# Уладение одинаковых решений
+# Удаление одинаковых решений
 def unique_answers():
     global res_answers
     res_answers = list(set(res_answers))
@@ -45,8 +45,6 @@ def background_task(data_dict):
     response = requests.get('http://localhost:5000/assign_task', json=data_dict)
     if response.status_code == 200:
         result = response.json()
-        # for res in result:
-        #     res_answers.extend([int(0), json.])
         res_answers = result
         correction_answers()
         unique_answers()
